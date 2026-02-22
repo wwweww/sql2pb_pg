@@ -8,13 +8,13 @@ import (
 	"log"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	dbType := flag.String("db", "mysql", "the database type")
+	dbType := flag.String("db", "postgres", "the database type")
 	host := flag.String("host", "localhost", "the database host")
-	port := flag.Int("port", 3306, "the database port")
+	port := flag.Int("port", 5432, "the database port")
 	user := flag.String("user", "root", "the database user")
 	password := flag.String("password", "", "the database password")
 	schema := flag.String("schema", "", "the database schema")
@@ -23,7 +23,7 @@ func main() {
 	packageName := flag.String("package", *schema, "the protocol buffer package. defaults to the database schema.")
 	goPackageName := flag.String("go_package", "", "the protocol buffer go_package. defaults to the database schema.")
 	ignoreTableStr := flag.String("ignore_tables", "", "a comma spaced list of tables to ignore")
-	ignoreColumnStr := flag.String("ignore_columns", "", "a comma spaced list of mysql columns to ignore")
+	ignoreColumnStr := flag.String("ignore_columns", "", "a comma spaced list of PostgreSQL columns to ignore")
 	fieldStyle := flag.String("field_style", "sqlPb", "gen protobuf field style, sql_pb | sqlPb")
 
 	flag.Parse()
@@ -33,7 +33,7 @@ func main() {
 		return
 	}
 
-	connStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", *user, *password, *host, *port, *schema)
+	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", *host, *port, *user, *password, *schema)
 	db, err := sql.Open(*dbType, connStr)
 	if err != nil {
 		log.Fatal(err)

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/Mikaelemmmm/sql2pb/tools/stringx"
 	"log"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/Mikaelemmmm/sql2pb/tools/stringx"
 
 	"github.com/chuckpreslar/inflect"
 	"github.com/serenize/snaker"
@@ -115,7 +116,7 @@ func typesFromColumns(s *Schema, cols []Column, ignoreTables, ignoreColumns []st
 func dbSchema(db *sql.DB) (string, error) {
 	var schema string
 
-	err := db.QueryRow("SELECT SCHEMA()").Scan(&schema)
+	err := db.QueryRow("SELECT current_schema()").Scan(&schema)
 
 	return schema, err
 }
@@ -124,16 +125,16 @@ func dbColumns(db *sql.DB, schema, table string) ([]Column, error) {
 
 	tableArr := strings.Split(table, ",")
 
-	q := "SELECT c.TABLE_NAME, c.COLUMN_NAME, c.IS_NULLABLE, c.DATA_TYPE, " +
-		"c.CHARACTER_MAXIMUM_LENGTH, c.NUMERIC_PRECISION, c.NUMERIC_SCALE, c.COLUMN_TYPE ,c.COLUMN_COMMENT,t.TABLE_COMMENT " +
-		"FROM INFORMATION_SCHEMA.COLUMNS as c  LEFT JOIN  INFORMATION_SCHEMA.TABLES as t  on c.TABLE_NAME = t.TABLE_NAME and  c.TABLE_SCHEMA = t.TABLE_SCHEMA" +
-		" WHERE c.TABLE_SCHEMA = ?"
+	q := "SELECT c.table_name, c.column_name, c.is_nullable, c.data_type, " +
+		"c.character_maximum_length, c.numeric_precision, c.numeric_scale, c.data_type as column_type, '' as column_comment, '' as table_comment " +
+		"FROM information_schema.columns as c " +
+		"WHERE c.table_schema = $1"
 
 	if table != "" && table != "*" {
-		q += " AND c.TABLE_NAME IN('" + strings.TrimRight(strings.Join(tableArr, "' ,'"), ",") + "')"
+		q += " AND c.table_name IN('" + strings.TrimRight(strings.Join(tableArr, "' ,'"), ",") + "')"
 	}
 
-	q += " ORDER BY c.TABLE_NAME, c.ORDINAL_POSITION"
+	q += " ORDER BY c.table_name, c.ordinal_position"
 
 	rows, err := db.Query(q, schema)
 	defer rows.Close()
@@ -678,7 +679,7 @@ func parseColumn(s *Schema, msg *Message, col Column) error {
 	var fieldType string
 
 	switch typ {
-	case "char", "varchar", "text", "longtext", "mediumtext", "tinytext":
+	case "char", "varchar", "character varying", "character", "text", "longtext", "mediumtext", "tinytext", "uuid":
 		fieldType = "string"
 	case "enum", "set":
 		// Parse c.ColumnType to get the enum list
@@ -697,18 +698,18 @@ func parseColumn(s *Schema, msg *Message, col Column) error {
 		s.Enums = append(s.Enums, enum)
 
 		fieldType = enumName
-	case "blob", "mediumblob", "longblob", "varbinary", "binary":
+	case "blob", "mediumblob", "longblob", "varbinary", "binary", "bytea":
 		fieldType = "bytes"
-	case "date", "time", "datetime", "timestamp":
+	case "date", "time", "datetime", "timestamp", "timestamp with time zone", "timestamp without time zone":
 		//s.AppendImport("google/protobuf/timestamp.proto")
 		fieldType = "int64"
-	case "bool", "bit":
+	case "bool", "bit", "boolean":
 		fieldType = "bool"
-	case "tinyint", "smallint", "int", "mediumint", "bigint":
+	case "tinyint", "smallint", "int", "mediumint", "bigint", "integer", "serial", "bigserial", "smallserial":
 		fieldType = "int64"
-	case "float", "decimal", "double":
+	case "float", "decimal", "double", "real", "numeric":
 		fieldType = "double"
-	case "json":
+	case "json", "jsonb":
 		fieldType = "string"
 	}
 

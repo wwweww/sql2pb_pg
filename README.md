@@ -1,6 +1,6 @@
 #### Give a star before you see it. Ha ha ha ~ ~
 
-Generates a protobuf file from your mysql database.
+Generates a protobuf file from your PostgreSQL database.
 
 ### Uses
 
@@ -17,7 +17,7 @@ $ sql2pb -h
 
 Usage of sql2pb:
   -db string
-        the database type (default "mysql")
+        the database type (default "postgres")
   -field_style string
         gen protobuf field style, sql_pb | sqlPb (default "sqlPb")
   -go_package string
@@ -25,15 +25,15 @@ Usage of sql2pb:
   -host string
         the database host (default "localhost")
   -ignore_columns string
-        a comma spaced list of mysql columns to ignore
+        a comma spaced list of PostgreSQL columns to ignore
   -ignore_tables string
         a comma spaced list of tables to ignore
   -package string
         the protocol buffer package. defaults to the database schema.
   -password string
-        the database password (default "root")
+        the database password
   -port int
-        the database port (default 3306)
+        the database port (default 5432)
   -schema string
         the database schema
   -service_name string
@@ -41,12 +41,12 @@ Usage of sql2pb:
   -table string
         the table schema，multiple tables ',' split.  (default "*")
   -user string
-        the database user (default "root")
+        the database user (default "postgres")
 
 ```
 
 ```
-$ sql2pb -go_package ./pb -host localhost -package pb -password root -port 3306 -schema usercenter -service_name usersrv -user root > usersrv.proto
+$ sql2pb -go_package ./pb -host localhost -package pb -password yourpwd -port 5432 -schema public -service_name usersrv -user postgres > usersrv.proto
 ```
 
 
