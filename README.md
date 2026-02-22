@@ -6,12 +6,6 @@ Generates a protobuf file from your PostgreSQL database.
 
 ##### Tips:  If your operating system is windows, the default encoding of windows command line is "GBK", you need to change it to "UTF-8", otherwise the generated file will be messed up. 
 
-
-
-#### Use from the command line:
-
-`go install github.com/Mikaelemmmm/sql2pb@latest`
-
 ```
 $ sql2pb -h
 
@@ -47,52 +41,6 @@ Usage of sql2pb:
 
 ```
 $ sql2pb -go_package ./pb -host localhost -package pb -password yourpwd -port 5432 -schema public -service_name usersrv -user postgres > usersrv.proto
-```
-
-
-
-#### Use as an imported library
-
-```sh
-$ go get -u github.com/Mikaelemmmm/sql2pb@latest
-```
-
-```go
-package main
-
-import (
-	"database/sql"
-	"fmt"
-	"github.com/Mikaelemmmm/sql2pb/core"
-	_ "github.com/go-sql-driver/mysql"
-	"log"
-)
-
-func main() {
-
-	dbType:= "mysql"
-	connStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", "root", "root", "127.0.0.1", 3306, "zero-demo")
-	pkg := "my_package"
-	goPkg := "./my_package"
-	table:= "*"
-	serviceName:="usersrv"
-	fieldStyle := "sqlPb"
-
-	db, err := sql.Open(dbType, connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	s, err := core.GenerateSchema(db, table,nil,nil,serviceName, goPkg, pkg,fieldStyle)
-
-	if nil != err {
-		log.Fatal(err)
-	}
-
-	if nil != s {
-		fmt.Println(s)
-	}
-}
 ```
 
 #### Thanks for schemabuf
